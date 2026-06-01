@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Челлендж "Июнь отжиманий" 💪</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 30px; }
+  header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  header p { font-size: 1.1rem; opacity: 0.9; }
+  .prize {
+    display: inline-block;
+    background: linear-gradient(45deg, #f7971e, #ffd200);
+    color: #1e3c72;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 { margin-bottom: 15px; font-size: 1.4rem; }
+
+  .rules { font-size: 0.95rem; line-height: 1.6; }
+  .rules ul { padding-left: 20px; }
+  .rules li { margin-bottom: 5px; }
+
+  .leaderboard { display: grid; gap: 10px; }
+  .lb-row {
+    display: grid;
+    grid-template-columns: 40px 1fr auto auto;
+    gap: 15px;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    transition: all 0.3s;
+  }
+  .lb-row.first { background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(255,255,255,0.08)); border-left: 4px solid gold; }
+  .lb-row.second { background: linear-gradient(90deg, rgba(192,192,192,0.25), rgba(255,255,255,0.08)); border-left: 4px solid silver; }
+  .lb-row.third { background: linear-gradient(90deg, rgba(205,127,50,0.25), rgba(255,255,255,0.08)); border-left: 4px solid #cd7f32; }
+  .lb-rank { font-size: 1.5rem; font-weight: bold; text-align: center; }
+  .lb-name { font-size: 1.1rem; font-weight: 600; }
+  .lb-stats { font-size: 0.9rem; opacity: 0.85; text-align: right; }
+  .lb-current { font-size: 1.8rem; font-weight: bold; color: #ffd200; }
+
+  .participants { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; }
+  .participant {
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 18px;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .participant.active-user { border-color: #ffd200; box-shadow: 0 0 15px rgba(255,210,0,0.3); }
+  .participant h3 { font-size: 1.2rem; margin-bottom: 12px; }
+  .participant .stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.92rem; }
+  .participant .stat:last-of-type { border-bottom: none; }
+  .participant .stat .v { font-weight: bold; }
+  .participant .delta { color: #4ade80; font-weight: bold; }
+  .participant .delta.bad { color: #f87171; }
+
+  .form-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+  label { display: block; font-size: 0.9rem; margin-bottom: 5px; opacity: 0.85; }
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 1rem;
+  }
+  input::placeholder { color: rgba(255,255,255,0.5); }
+  input:focus, select:focus { outline: none; border-color: #ffd200; background: rgba(255,255,255,0.15); }
+  select option { background: #1e3c72; color: #fff; }
+  button {
+    background: linear-gradient(45deg, #f7971e, #ffd200);
+    color: #1e3c72;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+    width: 100%;
+  }
+  button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+  button.secondary { background: rgba(255,255,255,0.15); color: #fff; }
+
+  .calendar { display: grid; grid-template-columns: 100px repeat(30, minmax(35px, 1fr)); gap: 2px; overflow-x: auto; font-size: 0.75rem; }
+  .cal-header { font-weight: bold; padding: 5px 3px; text-align: center; background: rgba(255,255,255,0.1); border-radius: 4px; }
+  .cal-name { padding: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; font-weight: 600; font-size: 0.85rem; }
+  .cal-cell { padding: 6px 3px; text-align: center; background: rgba(255,255,255,0.05); border-radius: 4px; min-height: 30px; cursor: pointer; transition: all 0.15s; }
+  .cal-cell.has-data { background: rgba(74,222,128,0.3); font-weight: bold; }
+  .cal-cell.has-video { background: rgba(74,222,128,0.3); border: 1px solid #ffd200; }
+  .cal-cell.today { box-shadow: inset 0 0 0 2px #ffd200; }
+  .cal-cell:hover { background: rgba(255,255,255,0.2); }
+
+  .status { padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; text-align: center; }
+  .status.demo { background: rgba(247,151,30,0.25); border: 1px solid #f7971e; }
+  .status.live { background: rgba(74,222,128,0.25); border: 1px solid #4ade80; }
+
+  .video-link { color: #ffd200; text-decoration: none; font-size: 0.85rem; }
+  .video-link:hover { text-decoration: underline; }
+
+  .progress-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #4ade80, #ffd200); transition: width 0.5s; }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.8rem; }
+    .form-section { grid-template-columns: 1fr; }
+    .lb-row { grid-template-columns: 35px 1fr auto; }
+    .lb-stats { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>💪 Челлендж "Июнь отжиманий"</h1>
+  <p id="hdr-participants">1–30 июня 2026 · каждый день +1 отжимание</p>
+  <div class="prize">🏆 Победитель забирает 8 000 ₽</div>
+</header>
+
+<div id="status" class="status demo">⚙️ Демо-режим: данные хранятся в браузере. Подключите Firebase, чтобы синхронизировать всех участников.</div>
+
+<div class="card">
+  <h2>📜 Правила</h2>
+  <div class="rules">
+    <ul>
+      <li>Каждый участник записывает свой <b>стартовый уровень</b> 1 июня (сколько отжиманий может сделать за один подход).</li>
+      <li>Каждый день добавляет <b>+1 отжимание</b> к предыдущему результату.</li>
+      <li>К 30 июня каждый должен показать <b>минимум +30 к старту</b>.</li>
+      <li>Победитель — у кого <b>самый высокий результат в день 30 июня</b>.</li>
+      <li>По возможности прикладывайте <b>видеоотчёт</b> (ссылка на Telegram/YouTube/Drive).</li>
+      <li>Пропустил день — <b>догоняешь</b> и не сбавляешь темп.</li>
+      <li>Призовой фонд <b>8 000 ₽</b> — победитель забирает всё.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🏆 Таблица лидеров</h2>
+  <div id="leaderboard" class="leaderboard"></div>
+</div>
+
+<div class="card">
+  <h2>👥 Участники</h2>
+  <div id="participants" class="participants"></div>
+  <div style="margin-top:15px; display:grid; grid-template-columns: 1fr 80px auto; gap:10px; align-items:end;">
+    <div>
+      <label>Добавить участника</label>
+      <input id="new-name" type="text" placeholder="Имя (например, Дядя Вова)">
+    </div>
+    <div>
+      <label>Эмодзи</label>
+      <input id="new-emoji" type="text" placeholder="🧑" maxlength="2">
+    </div>
+    <button style="width:auto; padding:10px 18px;" onclick="addParticipant()">➕ Добавить</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>✏️ Внести результат за день</h2>
+  <div class="form-section">
+    <div>
+      <label>Участник</label>
+      <select id="f-participant"></select>
+    </div>
+    <div>
+      <label>День</label>
+      <select id="f-day"></select>
+    </div>
+  </div>
+  <div class="form-section">
+    <div>
+      <label>Сколько отжиманий сделал</label>
+      <input id="f-pushups" type="number" min="0" max="500" placeholder="например, 25">
+    </div>
+    <div>
+      <label>Ссылка на видео (по желанию)</label>
+      <input id="f-video" type="url" placeholder="https://t.me/... или https://youtu.be/...">
+    </div>
+  </div>
+  <button onclick="saveEntry()">💾 Сохранить</button>
+</div>
+
+<div class="card">
+  <h2>📅 Календарь прогресса</h2>
+  <p style="font-size:0.85rem; opacity:0.8; margin-bottom:10px;">Зелёная клетка — день записан. С жёлтой рамкой — есть видео. Кликни клетку, чтобы открыть видео.</p>
+  <div id="calendar" class="calendar"></div>
+</div>
+
+<div class="card">
+  <h2>⚙️ Экспорт / резерв</h2>
+  <p style="font-size:0.9rem; margin-bottom:10px; opacity:0.85;">Скачать копию данных в JSON — на случай если что-то сломается.</p>
+  <button class="secondary" onclick="exportData()">📥 Скачать JSON</button>
+</div>
+
+</div>
+
+<!-- ============== FIREBASE CONFIG ==============
+Чтобы данные синхронизировались между всеми участниками — впишите свой
+Firebase config ниже и раскомментируйте подключение Firebase. См. README.md.
+================================================ -->
+<script type="module">
+  // import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  // import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  //
+  // const firebaseConfig = {
+  //   apiKey: "ВАШ_API_KEY",
+  //   authDomain: "ВАШ_PROJECT.firebaseapp.com",
+  //   databaseURL: "https://ВАШ_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
+  //   projectId: "ВАШ_PROJECT",
+  //   storageBucket: "ВАШ_PROJECT.appspot.com",
+  //   messagingSenderId: "...",
+  //   appId: "..."
+  // };
+  // const app = initializeApp(firebaseConfig);
+  // const db = getDatabase(app);
+  // window.__fb = { db, ref, set, onValue };
+
+  if (window.__fb) {
+    const { db, ref, set, onValue } = window.__fb;
+    window.cloudSave = (data) => set(ref(db, "challenge2026june"), data);
+    window.cloudListen = (cb) => onValue(ref(db, "challenge2026june"), s => cb(s.val() || {}));
+    document.getElementById("status").className = "status live";
+    document.getElementById("status").textContent = "✅ Облако подключено — все видят одни и те же данные.";
+  }
+</script>
+
+<script>
+// ===================== ДАННЫЕ И ЛОГИКА =====================
+const DEFAULT_PARTICIPANTS = [
+  { id: "evgeniy", name: "Евгений", emoji: "👨" },
+  { id: "lev",     name: "Лев",     emoji: "👦" },
+  { id: "gleb",    name: "Глеб",    emoji: "🧒" },
+];
+const TOTAL_DAYS = 30;
+const START_DATE = new Date(2026, 5, 1); // 1 июня 2026 (месяц 5 = июнь)
+const STORAGE_KEY = "pushupChallenge2026June";
+let state = { participants: [], starts: {}, entries: {} }; // entries[pid][day] = { count, video }
+
+function PARTICIPANTS() { return state.participants; }
+
+// === Загрузка ===
+function loadLocal() {
+  try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { state = {}; }
+  if (!state.starts) state.starts = {};
+  if (!state.entries) state.entries = {};
+  if (!Array.isArray(state.participants) || state.participants.length === 0) {
+    state.participants = JSON.parse(JSON.stringify(DEFAULT_PARTICIPANTS));
+  }
+}
+function saveLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (window.cloudSave) window.cloudSave(state);
+}
+
+// === Сегодняшний день челленджа (1..30 или 0 если ещё не начался) ===
+function todayDay() {
+  const now = new Date();
+  const diff = Math.floor((now - START_DATE) / 86400000) + 1;
+  if (diff < 1) return 0;
+  if (diff > TOTAL_DAYS) return TOTAL_DAYS;
+  return diff;
+}
+
+// === Поиск последней записи и расчёт текущего значения ===
+function getCurrent(pid) {
+  const entries = state.entries[pid] || {};
+  const days = Object.keys(entries).map(Number).sort((a,b) => b-a);
+  for (const d of days) if (entries[d] && entries[d].count != null) return { day: d, count: entries[d].count };
+  return null;
+}
+function getStart(pid) {
+  return state.starts[pid] != null ? state.starts[pid] : null;
+}
+
+// === Отрисовка участников ===
+function renderParticipants() {
+  const root = document.getElementById("participants");
+  root.innerHTML = "";
+  PARTICIPANTS().forEach(p => {
+    const start = getStart(p.id);
+    const cur = getCurrent(p.id);
+    const curCount = cur ? cur.count : (start != null ? start : 0);
+    const delta = (start != null) ? (curCount - start) : 0;
+    const target = (start != null) ? start + 30 : null;
+    const pct = target != null ? Math.min(100, Math.round((curCount - start) / 30 * 100)) : 0;
+
+    const div = document.createElement("div");
+    div.className = "participant";
+    div.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <h3>${p.emoji} ${p.name}</h3>
+        <button title="Удалить участника" onclick="removeParticipant('${p.id}')" style="width:auto; padding:4px 8px; background:rgba(248,113,113,0.25); color:#fff; font-size:0.8rem;">✕</button>
+      </div>
+      ${start == null ? `
+        <div style="margin-bottom:10px; font-size:0.9rem; opacity:0.85;">Стартовый уровень не задан</div>
+        <input type="number" min="0" max="200" placeholder="Сколько могу сейчас" id="start-${p.id}" style="margin-bottom:8px;">
+        <button onclick="setStart('${p.id}')">Установить старт</button>
+      ` : `
+        <div class="stat"><span>Старт:</span><span class="v">${start}</span></div>
+        <div class="stat"><span>Текущий:</span><span class="v">${curCount}</span></div>
+        <div class="stat"><span>Прогресс:</span><span class="v delta ${delta < (cur?cur.day-1:0) ? 'bad' : ''}">+${delta}</span></div>
+        <div class="stat"><span>Цель (+30):</span><span class="v">${target}</span></div>
+        <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+      `}
+    `;
+    root.appendChild(div);
+  });
+}
+
+// === Добавить / удалить участника ===
+window.addParticipant = function() {
+  const name = document.getElementById("new-name").value.trim();
+  const emoji = document.getElementById("new-emoji").value.trim() || "🧑";
+  if (!name) { alert("Введите имя"); return; }
+  let id = name.toLowerCase().replace(/[^а-яa-z0-9]/gi, "").substr(0,20) || ("p" + Date.now());
+  // уникальность
+  let base = id, i = 1;
+  while (PARTICIPANTS().some(x => x.id === id)) id = base + (++i);
+  state.participants.push({ id, name, emoji });
+  document.getElementById("new-name").value = "";
+  document.getElementById("new-emoji").value = "";
+  saveLocal();
+  render();
+};
+
+window.removeParticipant = function(pid) {
+  const p = PARTICIPANTS().find(x => x.id === pid);
+  if (!p) return;
+  if (!confirm(`Удалить участника ${p.name}? Все его записи тоже удалятся.`)) return;
+  state.participants = state.participants.filter(x => x.id !== pid);
+  delete state.starts[pid];
+  delete state.entries[pid];
+  saveLocal();
+  render();
+};
+
+window.setStart = function(pid) {
+  const v = parseInt(document.getElementById("start-" + pid).value, 10);
+  if (isNaN(v) || v < 0) { alert("Введите корректное число"); return; }
+  state.starts[pid] = v;
+  state.entries[pid] = state.entries[pid] || {};
+  state.entries[pid][1] = { count: v, video: null };
+  saveLocal();
+  render();
+};
+
+// === Таблица лидеров ===
+function renderLeaderboard() {
+  const root = document.getElementById("leaderboard");
+  root.innerHTML = "";
+  const rows = PARTICIPANTS().map(p => {
+    const start = getStart(p.id);
+    const cur = getCurrent(p.id);
+    const curCount = cur ? cur.count : (start != null ? start : 0);
+    const delta = (start != null) ? (curCount - start) : 0;
+    return { ...p, start, curCount, delta, hasStart: start != null };
+  });
+  rows.sort((a,b) => b.curCount - a.curCount || b.delta - a.delta);
+  rows.forEach((r, i) => {
+    const rankClass = i === 0 ? "first" : i === 1 ? "second" : i === 2 ? "third" : "";
+    const rankEmoji = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i+1);
+    const div = document.createElement("div");
+    div.className = "lb-row " + rankClass;
+    div.innerHTML = `
+      <div class="lb-rank">${rankEmoji}</div>
+      <div class="lb-name">${r.emoji} ${r.name}</div>
+      <div class="lb-stats">Старт ${r.hasStart ? r.start : '—'} · +${r.delta}</div>
+      <div class="lb-current">${r.curCount}</div>
+    `;
+    root.appendChild(div);
+  });
+}
+
+// === Календарь ===
+function renderCalendar() {
+  const root = document.getElementById("calendar");
+  root.innerHTML = "";
+  const today = todayDay();
+
+  // Заголовок
+  const empty = document.createElement("div"); empty.className = "cal-header"; empty.textContent = "";
+  root.appendChild(empty);
+  for (let d = 1; d <= TOTAL_DAYS; d++) {
+    const h = document.createElement("div");
+    h.className = "cal-header";
+    h.textContent = d;
+    root.appendChild(h);
+  }
+
+  // Строки участников
+  PARTICIPANTS().forEach(p => {
+    const name = document.createElement("div"); name.className = "cal-name"; name.textContent = p.emoji + " " + p.name;
+    root.appendChild(name);
+    const entries = state.entries[p.id] || {};
+    for (let d = 1; d <= TOTAL_DAYS; d++) {
+      const cell = document.createElement("div");
+      cell.className = "cal-cell";
+      const e = entries[d];
+      if (e && e.count != null) {
+        cell.classList.add("has-data");
+        cell.textContent = e.count;
+        if (e.video) {
+          cell.classList.add("has-video");
+          cell.title = "Видео: " + e.video;
+          cell.onclick = () => window.open(e.video, "_blank");
+        }
+      }
+      if (d === today) cell.classList.add("today");
+      root.appendChild(cell);
+    }
+  });
+}
+
+// === Форма сохранения ===
+function fillDaySelect() {
+  const sel = document.getElementById("f-day");
+  sel.innerHTML = "";
+  const today = Math.max(1, todayDay());
+  for (let d = 1; d <= TOTAL_DAYS; d++) {
+    const opt = document.createElement("option");
+    opt.value = d;
+    opt.textContent = `День ${d} (${d} июня)`;
+    if (d === today) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+window.saveEntry = function() {
+  const pid = document.getElementById("f-participant").value;
+  const day = parseInt(document.getElementById("f-day").value, 10);
+  const count = parseInt(document.getElementById("f-pushups").value, 10);
+  const video = document.getElementById("f-video").value.trim() || null;
+  if (isNaN(count) || count < 0) { alert("Введите количество отжиманий"); return; }
+  if (getStart(pid) == null) { alert("Сначала установи стартовый уровень в карточке участника."); return; }
+  state.entries[pid] = state.entries[pid] || {};
+  state.entries[pid][day] = { count, video };
+  saveLocal();
+  document.getElementById("f-pushups").value = "";
+  document.getElementById("f-video").value = "";
+  render();
+  // лёгкий фидбек
+  const btn = event.target;
+  const old = btn.textContent;
+  btn.textContent = "✅ Сохранено!";
+  setTimeout(() => btn.textContent = old, 1500);
+};
+
+window.exportData = function() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `pushup-challenge-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+function fillParticipantSelect() {
+  const sel = document.getElementById("f-participant");
+  const prev = sel.value;
+  sel.innerHTML = "";
+  PARTICIPANTS().forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = `${p.emoji} ${p.name}`;
+    sel.appendChild(opt);
+  });
+  if (prev && PARTICIPANTS().some(x => x.id === prev)) sel.value = prev;
+}
+
+function updateHeader() {
+  const n = PARTICIPANTS().length;
+  const word = n === 1 ? "участник" : (n >= 2 && n <= 4 ? "участника" : "участников");
+  document.getElementById("hdr-participants").textContent = `1–30 июня 2026 · ${n} ${word} · каждый день +1 отжимание`;
+}
+
+function render() {
+  updateHeader();
+  fillParticipantSelect();
+  renderLeaderboard();
+  renderParticipants();
+  renderCalendar();
+}
+
+// === Подключение к облаку (если есть) ===
+function attachCloud() {
+  if (window.cloudListen) {
+    window.cloudListen((data) => {
+      if (data && (data.starts || data.entries || data.participants)) {
+        state = {
+          participants: Array.isArray(data.participants) && data.participants.length ? data.participants : state.participants,
+          starts: data.starts || {},
+          entries: data.entries || {}
+        };
+        render();
+      }
+    });
+  }
+}
+
+// === Старт ===
+loadLocal();
+fillDaySelect();
+render();
+setTimeout(attachCloud, 500); // дать времени firebase подключиться
+</script>
+</body>
+</html>
